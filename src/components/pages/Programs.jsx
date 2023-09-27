@@ -190,7 +190,7 @@ function Programs() {
             ))}
           </Select>
         </FormControl>
-        <FormControl variant="outlined" sx={{ flex: 1 }}>
+        <FormControl variant="outlined" sx={{ marginRight: 1, flex: 1 }}>
           <InputLabel>Season</InputLabel>
           <Select
             name="season"

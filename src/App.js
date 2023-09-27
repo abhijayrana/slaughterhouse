@@ -3,8 +3,10 @@ import { Box } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import Navbar from "./components/universal/Navbar";
 import getTheme from "./theme";
-import Landing from "./components/pages/Landing";
+import Landing from "./components/pages/landing/Landing";
 import Programs from "./components/pages/Programs";
+import Intern from "./components/pages/intern/Intern";
+import AddProgram from "./components/pages/admin/EnterProgram"
 import { useState, useEffect } from "react";
 
 function App() {
@@ -62,6 +64,8 @@ function App() {
             <Routes>
               <Route exact path="/" element={<Landing />} />
               <Route path="/programs" element={<Programs />} />
+              <Route path="/intern" element={<Intern />} />
+                <Route path="/admin/add-program" element={<AddProgram />} />
             </Routes>
           </Box>
         </Router>
