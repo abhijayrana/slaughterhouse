@@ -1,7 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const path = require("path")
-
+const path = require("path");
 
 require("dotenv").config();
 
@@ -17,8 +16,7 @@ const jwtkey = process.env.JWTHASHKEY;
 app.use(cors());
 // Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "client", "build")))
-
+app.use(express.static(path.join(__dirname, "client", "build")));
 
 // Connect to MongoDB
 mongoose.connect(mongodburi, {
@@ -33,46 +31,64 @@ db.once("open", () => {
 });
 
 app.post("/api/add-program", async (req, res) => {
-    const {
-      name,
-      organization,
-      field,
-      eligibility,
-      type,
-      cost,
-      location,
-      virtual,
-      startDate,
-      endDate,
-      website,
-      applicationDeadline,
-      description,
-    } = req.body;
-  
-    const newProgram = new Program({
-      name,
-      organization,
-      field,
-      eligibility,
-      type,
-      cost,
-      location,
-      virtual,
-      startDate,
-      endDate,
-      website,
-      applicationDeadline,
-      description,
-    });
-  
-    try {
-        await newProgram.save();
-        res.status(200).json({ message: "Successfully added new program." });
-      } catch (err) {
-        res.status(500).json({ message: "Failed to add new program.", error: err });
-      }
+  const {
+    name,
+    organization,
+    field,
+    eligibility,
+    type,
+    cost,
+    location,
+    virtual,
+    startDate,
+    endDate,
+    website,
+    applicationDeadline,
+    description,
+  } = req.body;
+
+  const newProgram = new Program({
+    name,
+    organization,
+    field,
+    eligibility,
+    type,
+    cost,
+    location,
+    virtual,
+    startDate,
+    endDate,
+    website,
+    applicationDeadline,
+    description,
   });
-  
+
+  try {
+    await newProgram.save();
+    res.status(200).json({ message: "Successfully added new program." });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add new program.", error: err });
+  }
+});
+
+app.post("/api/upload-programs", async (req, res) => {
+  try {
+    const { programs } = req.body;
+    await Program.insertMany(programs);
+    res.status(200).json({ message: "Successfully uploaded programs." });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to upload programs.", error });
+  }
+});
+
+app.get("/api/programs", async (req, res) => {
+  try {
+    const programs = await Program.find();
+    res.status(200).json({ programs });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get programs.", error });
+  }
+});
 
 // Start server
 const port = process.env.PORT || 3001;

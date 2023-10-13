@@ -1,53 +1,47 @@
 const mongoose = require('mongoose');
 
 const programSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    organization: {
-        type: String,
-        required: true
-    },
-    field: {
-        type: String,
-        required: true
-    },
-    eligibility: {
-        age: Number,
-        year: Number
-    },
-    type: {
-        type: String,
-        // enum: ['Internship', 'Research', 'Course', etc.]
-    },
-    cost: {
-        type: String,
-    },
-    location: {
-        type: String,
-    },
-    virtual: {
-        type: Boolean,
-        required: true
-    },
-    startDate: {
-        type: Date,
-        required: true,
-    },
-    endDate : { 
-        type: Date
-    },
-    website: {
-        type: String,
-        required: true,
-    },
-    applicationDeadline: {
-        type: Date
-    },
-    description: {
-        type: String
-    }
+  name: {
+    type: String,
+    required: true,
+  },
+  organization: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+  },
+  field: {
+    type: Array,
+  },
+  eligibility: {
+    type: Array,
+  },
+  type: {
+    type: String,
+  },
+  cost: {
+    type: Number,
+  },
+  salary: {
+    type: Number,
+  },
+  location: {
+    type: String,
+  },
+  virtual: {
+    type: Boolean,
+  },
+  website: {
+    type: String,
+  },
+  startDate: {
+    type: Date,
+  },
+  endDate: {
+    type: Date,
+  },
 });
 
 const Program = mongoose.model('Program', programSchema);

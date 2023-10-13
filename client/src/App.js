@@ -6,8 +6,9 @@ import getTheme from "./theme";
 import Landing from "./components/pages/landing/Landing";
 import Programs from "./components/pages/Programs";
 import Intern from "./components/pages/intern/Intern";
-import AddProgram from "./components/pages/admin/EnterProgram"
+import AddProgram from "./components/pages/admin/EnterProgram";
 import { useState, useEffect } from "react";
+import ExcelUpload from "./components/pages/admin/UploadSpreadsheet";
 
 function App() {
   // Initialize to null; will update shortly
@@ -16,32 +17,34 @@ function App() {
 
   useEffect(() => {
     // Check if a mode is saved in local storage
-    const savedMode = localStorage.getItem('mode');
+    const savedMode = localStorage.getItem("mode");
 
     if (savedMode) {
       // Use the saved mode
       setMode(savedMode);
     } else {
       // Otherwise, check the system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setMode(prefersDark ? 'dark' : 'light');
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      setMode(prefersDark ? "dark" : "light");
     }
 
     // Listen for changes in system preference
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => setMode(e.matches ? 'dark' : 'light');
-    mediaQuery.addEventListener('change', handleChange);
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => setMode(e.matches ? "dark" : "light");
+    mediaQuery.addEventListener("change", handleChange);
 
     // Cleanup
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   const toggleMode = () => {
-    const newMode = mode === 'light' ? 'dark' : 'light';
+    const newMode = mode === "light" ? "dark" : "light";
     setMode(newMode);
 
     // Save the new mode in local storage
-    localStorage.setItem('mode', newMode);
+    localStorage.setItem("mode", newMode);
   };
 
   if (mode === null) {
@@ -51,7 +54,14 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={(theme) => ({ backgroundColor: theme.palette.background.default, display: "flex", flexDirection: "column", height: "100vh" })}>
+      <Box
+        sx={(theme) => ({
+          backgroundColor: theme.palette.background.default,
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+        })}
+      >
         <Router>
           <Navbar toggleMode={toggleMode} mode={mode} />
           <Box
@@ -65,7 +75,8 @@ function App() {
               <Route exact path="/" element={<Landing />} />
               <Route path="/programs" element={<Programs />} />
               <Route path="/intern" element={<Intern />} />
-                <Route path="/admin/add-program" element={<AddProgram />} />
+              <Route path="/admin/add-program" element={<AddProgram />} />
+              <Route path="/admin/upload" element={<ExcelUpload />} />
             </Routes>
           </Box>
         </Router>

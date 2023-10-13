@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -16,61 +16,84 @@ import {
   Typography,
 } from "@mui/material";
 
-const dummyPrograms = [
-  {
-    name: "Program 11",
-    eligibility: ["10", "11"],
-    field: "Mathematics",
-    virtual_in_person: "Virtual",
-    cost: ">$1000",
-    season: "Summer",
-    website_url: "https://program11.com",
-    acceptance_rate: "87%",
-    description: "This is a description for Program 11.",
-    app_deadline: "2023-5-10",
-  },
-  {
-    name: "Program 12",
-    eligibility: ["11", "12"],
-    field: "Mathematics",
-    virtual_in_person: "Virtual",
-    cost: "$100-$500",
-    season: "Fall",
-    website_url: "https://program12.com",
-    acceptance_rate: "48%",
-    description: "This is a description for Program 12.",
-    app_deadline: "2023-4-3",
-  },
-  {
-    name: "Program 13",
-    eligibility: ["9", "10", "11", "12"],
-    field: "Engineering",
-    virtual_in_person: "Virtual",
-    cost: "$100-$500",
-    season: "Fall",
-    website_url: "https://program13.com",
-    acceptance_rate: "21%",
-    description: "This is a description for Program 13.",
-    app_deadline: "2023-5-18",
-  },
-];
-
-const eligibilityOptions = ["9", "10", "11", "12"];
-const fieldOptions = ["Engineering", "Science", "Arts", "Mathematics"];
-const virtualOptions = ["Virtual", "In-Person"];
-const costOptions = ["Free", "$100-$500", "$500-$1000", ">$1000"];
-const seasonOptions = ["Summer", "Fall", "Winter"];
+const fieldOptions = ["Computer Science", "Engineering", "Physics", "Chemistry", "Biology", "Law"];
+const eligibilityOptions = [9, 10, 11, 12];
+const virtualOptions = [true, false];
+const costOptions = ["Free/Salaried", "$100-$500", "$500-$1000", ">$1000"];
+const seasonOptions = ["Summer", "Fall", "Winter", "Spring"];
 
 function Programs() {
   const [open, setOpen] = useState(false);
+  const [programs, setPrograms] = useState([]);
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [filters, setFilters] = useState({
-    eligibility: "",
     field: "",
-    virtual_in_person: "",
+    eligibility: "",
+    virtual: ``,
     cost: "",
     season: "",
   });
+
+  const [filteredPrograms, setFilteredPrograms] = useState([]);
+
+  function getSeason(date) {
+    const month = date.getMonth();
+    if (month >= 11 || month <= 1) {
+      return 'Winter';
+    } else if (month >= 2 && month <= 4) {
+      return 'Spring';
+    } else if (month >= 5 && month <= 7) {
+      return 'Summer';
+    } else {
+      return 'Fall';
+    }
+  }
+  
+
+  useEffect(() => {
+    fetch("/api/programs")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Received data:", data.programs); // Log data here
+        setPrograms(data.programs);
+        console.log("Programs:", programs); // Log programs here
+        setFilteredPrograms(data.programs);
+      })
+      .catch((err) => console.error("Fetch error:", err)); // Log error here
+  }, []);
+
+  useEffect(() => {
+    // Filter logic
+    if (Array.isArray(programs)) {
+      const newFilteredPrograms = programs.filter((program) => {
+        return Object.keys(filters).every((key) => {
+          if (key === "cost") {
+            switch (filters[key]) {
+              case "Free/Salaried":
+                return program[key] <= 0;
+              case "$100-$500":
+                return program[key] >= 100 && program[key] <= 500;
+              case "$500-$1000":
+                return program[key] > 500 && program[key] <= 1000;
+              case ">$1000":
+                return program[key] > 1000;
+              default:
+                return true; // No filter applied
+            }
+          } else if (key==="season") {
+            return !filters[key] || getSeason(new Date(program.startDate)) === filters[key];
+          }
+          else if (Array.isArray(program[key])) {
+            return !filters[key] || program[key].includes(filters[key]);
+          } else {
+            return !filters[key] || filters[key] === program[key];
+          }
+        });
+      });
+      console.log("Filtered programs:", newFilteredPrograms);
+      setFilteredPrograms(newFilteredPrograms);
+    }
+  }, [filters]);
 
   const handleOpen = (program) => {
     setSelectedProgram(program);
@@ -86,20 +109,11 @@ function Programs() {
     setFilters((prevFilters) => ({ ...prevFilters, [name]: value }));
   };
 
-  const filteredPrograms = dummyPrograms.filter((program) => {
-    return Object.keys(filters).every((key) => {
-      if (Array.isArray(program[key])) {
-        return !filters[key] || program[key].includes(filters[key]);
-      } else {
-        return !filters[key] || filters[key] === program[key];
-      }
-    });
-  });
   const resetFilters = () => {
     setFilters({
-      eligibility: "",
       field: "",
-      virtual_in_person: "",
+      eligibility: "",
+      virtual: "",
       cost: "",
       season: "",
     });
@@ -123,23 +137,6 @@ function Programs() {
         }}
       >
         <FormControl variant="outlined" sx={{ marginRight: 1, flex: 1 }}>
-          <InputLabel>Eligibility</InputLabel>
-          <Select
-            name="eligibility"
-            value={filters.eligibility}
-            onChange={handleFilterChange}
-          >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            {eligibilityOptions.map((option, index) => (
-              <MenuItem value={option} key={index}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl variant="outlined" sx={{ marginRight: 1, flex: 1 }}>
           <InputLabel>Field</InputLabel>
           <Select
             name="field"
@@ -156,11 +153,30 @@ function Programs() {
             ))}
           </Select>
         </FormControl>
+
         <FormControl variant="outlined" sx={{ marginRight: 1, flex: 1 }}>
-          <InputLabel>Virtual/In-Person</InputLabel>
+          <InputLabel>Eligibility</InputLabel>
           <Select
-            name="virtual_in_person"
-            value={filters.virtual_in_person}
+            name="eligibility"
+            value={filters.eligibility}
+            onChange={handleFilterChange}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {eligibilityOptions.map((option, index) => (
+              <MenuItem value={option} key={index}>
+                {option.toString()} {/* Convert number to string */}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl variant="outlined" sx={{ marginRight: 1, flex: 1 }}>
+          <InputLabel>Virtual</InputLabel>
+          <Select
+            name="virtual"
+            value={filters.virtual}
             onChange={handleFilterChange}
           >
             <MenuItem value="">
@@ -168,11 +184,12 @@ function Programs() {
             </MenuItem>
             {virtualOptions.map((option, index) => (
               <MenuItem value={option} key={index}>
-                {option}
+                {option ? "Yes" : "No"} {/* Convert boolean to string */}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+
         <FormControl variant="outlined" sx={{ marginRight: 1, flex: 1 }}>
           <InputLabel>Cost</InputLabel>
           <Select
@@ -190,6 +207,7 @@ function Programs() {
             ))}
           </Select>
         </FormControl>
+
         <FormControl variant="outlined" sx={{ marginRight: 1, flex: 1 }}>
           <InputLabel>Season</InputLabel>
           <Select
@@ -205,8 +223,11 @@ function Programs() {
                 {option}
               </MenuItem>
             ))}
+
           </Select>
         </FormControl>
+
+
         <Button variant="outlined" sx={{ flex: 0.8 }} onClick={resetFilters}>
           Reset Filters
         </Button>
@@ -220,32 +241,42 @@ function Programs() {
           alignItems: "center",
         }}
       >
-        {filteredPrograms.map((program, index) => (
-          <Card
-            key={index}
-            sx={{
-              width: "80%",
-              marginBottom: 2,
-              backgroundColor: (theme) => theme.palette.background.default,
-              color: (theme) => theme.palette.text.primary,
-            }}
-          >
-            <CardActionArea onClick={() => handleOpen(program)}>
-              <CardContent>
-                <Typography variant="h5" component="div">
-                  {program.name}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: 14 }}
-                  color="text.secondary"
-                  gutterBottom
-                >
-                  {program.field} | {program.virtual_in_person} | {program.cost}
-                </Typography>
-              </CardContent>
-            </CardActionArea>
-          </Card>
-        ))}
+        {filteredPrograms.length > 0 ? (
+          filteredPrograms.map((program, index) => (
+            <Card
+              key={index}
+              sx={{
+                width: "80%",
+                marginBottom: 2,
+                backgroundColor: (theme) => theme.palette.background.default,
+                color: (theme) => theme.palette.text.primary,
+              }}
+            >
+              <CardActionArea onClick={() => handleOpen(program)}>
+                <CardContent>
+                  <Typography variant="h5" component="div">
+                    {program.name}
+                  </Typography>
+                  <Typography
+                    sx={{ fontSize: 14 }}
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    {program.field.join(", ")} |{" "}
+                    {program.cost > 0
+                      ? "Cost: $" + program.cost
+                      : "Stipend: $" + program.salary + "/hr"}{" "}
+                    | {program.virtual ? "Virtual" : "In-Person"}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          ))
+        ) : (
+          <Typography variant="h6" component="div">
+            No programs found.
+          </Typography>
+        )}
       </Box>
 
       <Dialog open={open} onClose={handleClose}>
@@ -264,33 +295,40 @@ function Programs() {
           }}
         >
           <Typography variant="body1">
-            <strong>Field:</strong> {selectedProgram?.field}
+            <strong>Name:</strong> {selectedProgram?.name}
             <br />
-            <strong>Eligibility:</strong> {selectedProgram?.eligibility}
+            <strong>Organization:</strong> {selectedProgram?.organization}
             <br />
-            <strong>Virtual/In-Person:</strong>{" "}
-            {selectedProgram?.virtual_in_person}
+            <strong>Description:</strong> {selectedProgram?.description}
+            <br />
+            <strong>Field:</strong> {selectedProgram?.field.join(", ")}
+
+            <br />
+            <strong>Eligibility:</strong> {selectedProgram?.eligibility.join(", ")}
+            <br />
+            <strong>Type:</strong> {selectedProgram?.type}
             <br />
             <strong>Cost:</strong> {selectedProgram?.cost}
             <br />
-            <strong>Season:</strong> {selectedProgram?.season}
+            <strong>Salary:</strong> {selectedProgram?.salary}
             <br />
-            <strong>Website:</strong>{" "}
+            <strong>Location:</strong> {selectedProgram?.location}
+            <br />
+            <strong>Virtual:</strong> {selectedProgram?.virtual ? "Yes" : "No"}
+            <br />
+            <strong>Website:</strong>
             <a
-              href={selectedProgram?.website_url}
+              href={selectedProgram?.website}
               target="_blank"
               rel="noreferrer"
               style={{ color: "inherit" }}
             >
-              {selectedProgram?.website_url}
+              {selectedProgram?.website}
             </a>
             <br />
-            <strong>Acceptance Rate:</strong> {selectedProgram?.acceptance_rate}
+            <strong>Start Date:</strong> {new Date(selectedProgram?.startDate).toLocaleDateString()}
             <br />
-            <strong>Application Deadline:</strong>{" "}
-            {selectedProgram?.app_deadline}
-            <br />
-            <strong>Description:</strong> {selectedProgram?.description}
+            <strong>End Date:</strong> {new Date(selectedProgram?.endDate).toLocaleDateString()}
             <br />
           </Typography>
         </DialogContent>
