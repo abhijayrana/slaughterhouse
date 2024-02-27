@@ -75,7 +75,7 @@ app.post("/api/upload-programs", async (req, res) => {
   try {
     const { programs } = req.body;
     await Program.insertMany(programs);
-    res.status(200).json({ message: "Successfully uploaded programs." });
+    res.status(200).json({ message: "Successfully uploaded programs.", programs });
   } catch (error) {
     res.status(500).json({ message: "Failed to upload programs.", error });
   }
@@ -87,6 +87,23 @@ app.get("/api/programs", async (req, res) => {
     res.status(200).json({ programs });
   } catch (error) {
     res.status(500).json({ message: "Failed to get programs.", error });
+  }
+});
+
+app.get('/api/unique-fields', async (req, res) => {
+  try {
+    // Fetch all programs
+    const programs = await Program.find({});
+
+    // Extract fields and flatten the array
+    const allFields = programs.map(program => program.field).flat();
+
+    // Deduplicate the fields
+    const uniqueFields = [...new Set(allFields)];
+
+    res.status(200).json(uniqueFields);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching fields", error });
   }
 });
 

@@ -16,16 +16,19 @@ const programSchema = new mongoose.Schema({
     type: Array,
   },
   eligibility: {
-    type: Array,
+    // Eligibility is now an object that can contain age range or grades
+      range: [Number],
+      eligType: String  // 'Age' or 'Grade'
   },
-  type: {
-    type: String,
-  },
+
   cost: {
-    type: Number,
+    // Cost is now an object that includes the amount and the type (Cost or Stipend)
+      amount: Number,
+      costType: String  // 'Cost' or 'Stipend'
+
   },
-  salary: {
-    type: Number,
+  paymentType: {
+    type: String,  // Additional field for payment type
   },
   location: {
     type: String,
@@ -37,10 +40,10 @@ const programSchema = new mongoose.Schema({
     type: String,
   },
   startDate: {
-    type: Date,
+    type: String,  // Changed to String to accommodate 'Year-round', season names, or Date
   },
   endDate: {
-    type: Date,
+    type: String,  // Changed to String for the same reasons as startDate
   },
 });
 
